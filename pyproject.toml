@@ -1,0 +1,15 @@
+[project]
+name = "parakeet-tdt-mw"
+description = "parakeet-tdt-0.6b-v2: Automatic speech recognition (ASR) model designed for high-quality English transcription, featuring support for punctuation, capitalization, and accurate timestamp prediction."
+version = "1.0.0"
+license = {file = "LICENSE"}
+dependencies = ["pybind11", "cuda-python"]
+
+[project.urls]
+Repository = "https://github.com/billwuhao/ComfyUI_parakeet-tdt"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = "mw"
+DisplayName = "ComfyUI_parakeet-tdt"
+Icon = ""

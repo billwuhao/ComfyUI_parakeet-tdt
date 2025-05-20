@@ -1,0 +1,3 @@
+pybind11
+cuda-python
+# nemo_toolkit['asr'] # Linux
