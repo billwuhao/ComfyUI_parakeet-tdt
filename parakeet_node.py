@@ -60,9 +60,9 @@ def convert_subtitle_format(data):
   # Join all lines with a newline character
   return "\n".join(lines)
 
+MODEL_CACHE = None
 class ParakeetASRRun:
     def __init__(self):
-        self.model_cache = None
         self.device = comfy.model_management.get_torch_device()
 
     @classmethod
@@ -89,19 +89,32 @@ class ParakeetASRRun:
         max_num_words_per_page=24,
         unload_model=True,
     ):
-        model = self.load_model()
+        global MODEL_CACHE
+        if MODEL_CACHE is None:
+            print(f"Loading Parakeet ASR model from: {model_path}")
+            if not os.path.exists(model_path):
+                raise FileNotFoundError(f"Model file not found: {model_path}. Please check paths.")
+            
+            # Critical: Move model to the correct device ComfyUI is using
+            MODEL_CACHE = nemo_asr.models.ASRModel.restore_from(
+                restore_path=model_path,
+                map_location=self.device 
+            )
+            MODEL_CACHE.to(self.device)
+            MODEL_CACHE.eval()
 
         audio_file = cache_audio_tensor(
             cache_dir,
             audio["waveform"].squeeze(0),
             audio["sample_rate"],
         )
-        output = model.transcribe(
+        output = MODEL_CACHE.transcribe(
             [audio_file],
             timestamps=True
         )
+        
         if unload_model:
-            self.model_cache = None
+            MODEL_CACHE = None
 
         if timestamps_type == "none":
             return (output[0].text, "", "")
@@ -113,21 +126,6 @@ class ParakeetASRRun:
             json_text = [{"timestamp": [i["start"], i["end"]], "text": i["segment"]} for i in output[0].timestamp['segment']]
             subtitle_text = convert_subtitle_format(json_text)
             return (output[0].text, str(json_text), subtitle_text)
-    
-    def load_model(self):
-        if self.model_cache is None:
-            print(f"Loading Parakeet ASR model from: {model_path}")
-            if not os.path.exists(model_path):
-                raise FileNotFoundError(f"Model file not found: {model_path}. Please check paths.")
-            
-            # Critical: Move model to the correct device ComfyUI is using
-            self.model_cache = nemo_asr.models.ASRModel.restore_from(
-                restore_path=model_path,
-                map_location=self.device 
-            )
-            self.model_cache.to(self.device)
-            self.model_cache.eval()
-        return self.model_cache
 
     def split_into_sentences(self, segments, max_num_words_per_page):
         sentences = []

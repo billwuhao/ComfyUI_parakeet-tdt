@@ -1,7 +1,7 @@
 [project]
 name = "parakeet-tdt-mw"
 description = "parakeet-tdt-0.6b-v2: Automatic speech recognition (ASR) model designed for high-quality English transcription, featuring support for punctuation, capitalization, and accurate timestamp prediction."
-version = "1.0.0"
+version = "1.0.1"
 license = {file = "LICENSE"}
 dependencies = ["pybind11", "cuda-python"]
 
